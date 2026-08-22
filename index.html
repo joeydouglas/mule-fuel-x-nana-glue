@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mule Fuel x Nana Glue - Breeding Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌿 Mule Fuel x Nana Glue</h1>
+            <p class="subtitle">F1 Breeding Population Tracker</p>
+            <p class="subtitle">Last updated: August 22, 2026 at 05:56 PM</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">45</div>
+                <div class="stat-label">Total Plants</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number top-keeper">4</div>
+                <div class="stat-label">Top Keepers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number keeper">2</div>
+                <div class="stat-label">Keepers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number culled">39</div>
+                <div class="stat-label">Culled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100</div>
+                <div class="stat-label">Photos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">13.3%</div>
+                <div class="stat-label">Selection Rate</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterPlants('all')">All Plants</button>
+            <button class="filter-btn" onclick="filterPlants('top_keeper')">💚💚 Top Keepers</button>
+            <button class="filter-btn" onclick="filterPlants('keeper')">💚 Keepers</button>
+            <button class="filter-btn" onclick="filterPlants('culled')">☠️ Culled</button>
+        </div>
+        
+        <div class="grid" id="plantGrid">
+
+            <a href="plants/MG01.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1TO38cDp0bwIYSc2MI1jtASPrKzL6sFEO" class="plant-image" alt="MG01" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG01 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG02.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1DUqZ02eUkoPTSY6IZrEIY88BF4eec9mf" class="plant-image" alt="MG02" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG02 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG03.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1r4Hx7VE3uwJLxk0Xg2bFyvp2XSybdwdZ" class="plant-image" alt="MG03" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG03 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG04.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1n8ieGQ9zOTDG8uG9YvNk9txG4L3QYsk8" class="plant-image" alt="MG04" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG04 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG05.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1_JbHdmP8okISz4tMaOdjLlQcukw4EzbJ" class="plant-image" alt="MG05" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG05 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG06.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1AWbaj3d1pTEcRqOJhfxBp0wo80QMhsXl" class="plant-image" alt="MG06" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG06 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG07.html" class="plant-card culled" data-status="culled">
+                <div class="plant-image"></div>
+                <div class="plant-info">
+                    <div class="plant-id">MG07 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    
+                </div>
+            </a>
+
+            <a href="plants/MG08.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/11aeg5YonoSJ9CJYG_ZcWXmiP6J1qMEWE" class="plant-image" alt="MG08" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG08 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG10.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1QU-wZIqyYc9tUlvEpnYbNSDHRvaupCIb" class="plant-image" alt="MG10" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG10 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG11.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1tqWJ304bzkzSeV0pNHiLWqE-ChHvAI7P" class="plant-image" alt="MG11" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG11 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 4 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG12.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1yBR253MWW_8m_O9xqA2p9bjg4bD3gJP5" class="plant-image" alt="MG12" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG12 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG13.html" class="plant-card keeper" data-status="keeper">
+                <img src="https://lh3.googleusercontent.com/d/17lqr-3AV60h6XlvMRJRIqzo8_xENc0EK" class="plant-image" alt="MG13" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG13 💚</div>
+                    <span class="status-badge keeper">Keeper</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG14.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1m7I2X-PpL_4h-U6gJMs3cOk0qrZW4MgN" class="plant-image" alt="MG14" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG14 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG15.html" class="plant-card keeper" data-status="keeper">
+                <img src="https://lh3.googleusercontent.com/d/1vmL1uniM3jhzK7iRYO1dZFhlRT_83ujE" class="plant-image" alt="MG15" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG15 💚</div>
+                    <span class="status-badge keeper">Keeper</span>
+                    <div class="plant-details">
+                        Terps: citrus, fuel
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG16.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1M5cmrcMmZcFOkBY-3rPabLbQTxyqMT7Y" class="plant-image" alt="MG16" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG16 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG17.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1NPeqXhZE_AeLRUTortCF_iK93ymWRwuV" class="plant-image" alt="MG17" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG17 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 7 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG18.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/14H-gt_MNMviQJvNMY8iOSCFeRccawnD3" class="plant-image" alt="MG18" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG18 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG19.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1POYGOFR1ZxpS9HB1rExPuKMP2Erw1q4Y" class="plant-image" alt="MG19" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG19 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG20.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1ECjdlFDh7hgEPn_ABFOGARkihdFAh1Z9" class="plant-image" alt="MG20" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG20 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG21.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1YvgivGNopPGHgUXXOhRF1TvvOA1tSB68" class="plant-image" alt="MG21" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG21 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG22.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1tUUN2ucoFpNoyQ6r_XGbYMCMV1zq6Ocw" class="plant-image" alt="MG22" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG22 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG23.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1ZpCgZYGXlfEVqx0yN8_eBBPivqSgy63u" class="plant-image" alt="MG23" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG23 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG24.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1b3HRbqUeZjFr1AleC2GPFRQAZyGNAW3W" class="plant-image" alt="MG24" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG24 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 5 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG25.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/19vUTUm0-a6ZbjQ_MPazax0KNZuV7wfWB" class="plant-image" alt="MG25" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG25 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG26.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/15W6fQNlR2QeDZovaqDFNqtbm3xKy_huQ" class="plant-image" alt="MG26" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG26 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG27.html" class="plant-card top_keeper" data-status="top_keeper">
+                <img src="https://lh3.googleusercontent.com/d/1r4PysmpB2xBzMiNVHePhruvn1TR1wrKn" class="plant-image" alt="MG27" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG27 💚💚</div>
+                    <span class="status-badge top_keeper">Top Keeper</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG28.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1UmwxVrY-074IGjT67EVs74IstdfGYn0Q" class="plant-image" alt="MG28" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG28 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG29.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1uNOLvwVGLyNpiKoLjNDvyiT7fWyZT6zP" class="plant-image" alt="MG29" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG29 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG30.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1nXkcjKH-BwejhgksDdKC40gkXzpZ2RsL" class="plant-image" alt="MG30" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG30 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG31.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1VC9vfBsGRxiSMKYRCtnao2OcVshRzaQZ" class="plant-image" alt="MG31" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG31 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG32.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1Km04fsOQAni8vZQMELHfDE_hdXwRHsJ7" class="plant-image" alt="MG32" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG32 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG33.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1oCOogEDb8CaaJ38KKxbBO_3C8W-CwhHd" class="plant-image" alt="MG33" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG33 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG34.html" class="plant-card top_keeper" data-status="top_keeper">
+                <img src="https://lh3.googleusercontent.com/d/1lCX4Nfyr17NdfJPQ3sOfV8ED13URU5yo" class="plant-image" alt="MG34" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG34 💚💚</div>
+                    <span class="status-badge top_keeper">Top Keeper</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG35.html" class="plant-card top_keeper" data-status="top_keeper">
+                <img src="https://lh3.googleusercontent.com/d/13jCwqjplAPyhqIe_Qr9GgVGkkotXdl3v" class="plant-image" alt="MG35" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG35 💚💚</div>
+                    <span class="status-badge top_keeper">Top Keeper</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG36.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1d4L0D27DeuRo2uz08Isk-xVE9LHTaiYJ" class="plant-image" alt="MG36" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG36 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG37.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1KzyTpBXbS7rYg10lbZSleXt-vTx7M5Yu" class="plant-image" alt="MG37" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG37 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG38.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1M9pOhfT-ev4OYOUrQoNtBlsIvvFo-jc9" class="plant-image" alt="MG38" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG38 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG39.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1dh7hQ5IwKZ5-REKRi-79uGXR0XgD9KkW" class="plant-image" alt="MG39" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG39 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 4 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG40.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1Xu_SkL9dF1ktdd2OyrHQ9D4KPtJCvw0p" class="plant-image" alt="MG40" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG40 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG41.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1PkSolzmRbO8bGbmVtiaJpdDBuEfbMeyK" class="plant-image" alt="MG41" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG41 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 1 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG42.html" class="plant-card top_keeper" data-status="top_keeper">
+                <img src="https://lh3.googleusercontent.com/d/10dNjBq3mnWre8pKnACVXHyDnWMOHMNtr" class="plant-image" alt="MG42" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG42 💚💚</div>
+                    <span class="status-badge top_keeper">Top Keeper</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 3 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG43.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/196OgAYhVPRu3hdYAdFsiFVXMkedQk0kY" class="plant-image" alt="MG43" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG43 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG44.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1BzXZjdWiwX-i5CtV6KLLPA76BomNkyv6" class="plant-image" alt="MG44" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG44 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG45.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1XMneMa0IjZDh_tyM1a1GISGkdcmBaV_r" class="plant-image" alt="MG45" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG45 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+            <a href="plants/MG46.html" class="plant-card culled" data-status="culled">
+                <img src="https://lh3.googleusercontent.com/d/1Pa_QapDcgdWiLoTIyDaeRCdhG4jgD56B" class="plant-image" alt="MG46" loading="lazy">
+                <div class="plant-info">
+                    <div class="plant-id">MG46 ☠️</div>
+                    <span class="status-badge culled">Culled</span>
+                    <div class="plant-details">
+                        No details recorded
+                    </div>
+                    <span class="photo-count">📸 2 photos</span>
+                </div>
+            </a>
+
+        </div>
+        
+        <footer>
+            <div class="links">
+                <a href="https://docs.google.com/spreadsheets/d/18mAI2R1Tty-yjx3KAzq8vp_SqD-FVvLC8kNwyltuxYc/edit" target="_blank">📊 Google Sheet</a>
+                <a href="https://drive.google.com/drive/folders/1q8aqMbh0HpP8jYAw-4Aay0j6CkkOVTwI" target="_blank">📁 Drive Folder</a>
+                <a href="https://drive.google.com/drive/folders/1iN0_BEVchnw5G0Y-5mFXaejSodc68xgX" target="_blank">📸 Photos</a>
+                <a href="https://drive.google.com/drive/folders/1JcYOfPcBbjrIbvCjvr41hqxarHwsfboH" target="_blank">📝 Notes</a>
+            </div>
+            <p style="margin-top: 20px;">
+                Automated breeding tracker powered by Claude<br>
+                Cross: Mule Fuel x Nana Glue | Generation: F1 | Population: 45 plants | Photos: 100
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        function filterPlants(status) {
+            const cards = document.querySelectorAll('.plant-card');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            cards.forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Exclude local photos (using Drive URLs instead)
+photos/
+*.tar.gz
+test.html
