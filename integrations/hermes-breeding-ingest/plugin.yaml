@@ -1,0 +1,6 @@
+name: breeding-channel-ingest
+version: "1.0.0"
+description: Silently ingests Discord breeding-channel messages before agent dispatch.
+author: Joey + NickCage
+provides_hooks:
+  - pre_gateway_dispatch
