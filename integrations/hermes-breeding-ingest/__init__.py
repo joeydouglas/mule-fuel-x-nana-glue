@@ -58,15 +58,13 @@ def _make_dashboard_processor():
     resolved a real rate-limit incident caused by spending a provider call
     per tick just to decide whether to run a deterministic script.
 
-    Photo attachments are intentionally NOT wired here: monitor_breeding_notes
-    .process_message()'s attachment path expects Discord CDN URLs (as
-    DiscordChatExporter exports them), while the live Gateway event's
-    media_urls carries locally-cached file paths -- a different shape that
-    would need its own verified download/upload path. Until that's built,
-    photo-only updates on brand-new messages are backfilled via the existing
-    DiscordChatExporter replay path (README's "Verify or replay an export"),
-    which already shares the same message-ID cursor and cannot duplicate
-    observations.
+    Photo attachments ARE wired here (NICK-9): media_urls, as passed in by
+    hermes_gateway.py's _discord_image_attachment_urls(), are real Discord
+    CDN URLs (read from the raw discord.Message's .attachments, not the
+    locally-cached paths in event.media_urls) -- exactly the shape
+    monitor_breeding_notes.process_message()'s attachment path already
+    expects from the DiscordChatExporter replay path, so no separate
+    download/upload code is needed here.
     """
     if str(_BREEDING_DIR) not in sys.path:
         sys.path.insert(0, str(_BREEDING_DIR))
@@ -75,7 +73,7 @@ def _make_dashboard_processor():
     def _processor(content: str, media_urls: list[str]) -> None:
         import monitor_breeding_notes
 
-        result = monitor_breeding_notes.process_message(content)
+        result = monitor_breeding_notes.process_message(content, attachments=media_urls or None)
         if result:
             logger.info("breeding-channel-ingest: %s", result)
 

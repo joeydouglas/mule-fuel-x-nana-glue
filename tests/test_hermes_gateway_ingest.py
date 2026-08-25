@@ -21,6 +21,7 @@ def make_event(
     message_type: str = "text",
     media_urls: list[str] | None = None,
     raw_text: str | None = None,
+    raw_attachments: list | None = None,
 ):
     source = SimpleNamespace(
         platform=SimpleNamespace(value="discord"),
@@ -32,6 +33,11 @@ def make_event(
         is_bot=is_bot,
         message_id=message_id,
     )
+    raw_message = None
+    if raw_text is not None or raw_attachments is not None:
+        raw_message = SimpleNamespace(
+            content=raw_text, attachments=raw_attachments or []
+        )
     return SimpleNamespace(
         text=text,
         source=source,
@@ -39,9 +45,7 @@ def make_event(
         message_type=SimpleNamespace(value=message_type),
         media_urls=media_urls or [],
         timestamp="2026-08-25T12:00:00+00:00",
-        raw_message=(
-            SimpleNamespace(content=raw_text) if raw_text is not None else None
-        ),
+        raw_message=raw_message,
     )
 
 
@@ -238,6 +242,50 @@ class HermesGatewayIngestTests(unittest.TestCase):
 
         self.assertEqual(result, {"action": "skip", "reason": "breeding message ingested"})
         self.assertEqual(calls, [("MG30 vigor 9", [])])
+
+    def test_processor_receives_real_discord_cdn_url_not_local_cache_path(self):
+        """NICK-9 regression: processor must get the live discord.com CDN URL
+        (from raw_message.attachments[*].url) so photo_handler.process_photo()
+        can download the original bytes -- not event.media_urls, which is a
+        locally-cached file path the platform adapter wrote for vision-tool
+        access and is useless for a fresh Drive upload."""
+        calls = []
+        hook = create_gateway_hook(
+            store=self.store,
+            processor=lambda content, media_urls: calls.append((content, media_urls)),
+        )
+        cdn_url = "https://cdn.discordapp.com/attachments/123/456/photo.jpg"
+        attachment = SimpleNamespace(url=cdn_url, content_type="image/jpeg")
+        event = make_event(
+            message_id="1542000000000000013",
+            text="MG32 frosty pic",
+            media_urls=["/home/joey/.hermes/cache/images/img_local_cache.jpg"],
+            raw_attachments=[attachment],
+        )
+
+        hook(event=event)
+
+        self.assertEqual(calls, [("MG32 frosty pic", [cdn_url])])
+
+    def test_processor_ignores_non_image_attachments(self):
+        calls = []
+        hook = create_gateway_hook(
+            store=self.store,
+            processor=lambda content, media_urls: calls.append((content, media_urls)),
+        )
+        attachment = SimpleNamespace(
+            url="https://cdn.discordapp.com/attachments/1/2/notes.pdf",
+            content_type="application/pdf",
+        )
+        event = make_event(
+            message_id="1542000000000000014",
+            text="MG33 see attached notes",
+            raw_attachments=[attachment],
+        )
+
+        hook(event=event)
+
+        self.assertEqual(calls, [("MG33 see attached notes", [])])
 
     def test_processor_is_not_called_when_no_plant_id_present(self):
         calls = []

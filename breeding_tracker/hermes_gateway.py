@@ -51,6 +51,30 @@ def _voice_transcript(event: Any, transcriber: Transcriber | None) -> str:
     return transcript.strip()
 
 
+def _discord_image_attachment_urls(event: Any) -> list[str]:
+    """Return real Discord CDN URLs for image attachments on this event.
+
+    ``event.media_urls`` carries locally-cached file paths written by the
+    platform adapter (for vision-tool access), not the Discord CDN URL --
+    ``photo_handler.process_photo()`` needs the CDN URL so it can download
+    the original bytes itself before the URL expires (NICK-9). The raw
+    ``discord.Message`` object (``event.raw_message``) still exposes the
+    real attachment objects with their live ``.url``/``.content_type``, so
+    read from there instead. Returns [] for non-image attachments, missing
+    attachments, or a raw_message shape without an ``attachments`` list
+    (e.g. voice-only events, or the lightweight stand-ins used in tests).
+    """
+    raw_message = getattr(event, "raw_message", None)
+    attachments = getattr(raw_message, "attachments", None) or []
+    urls: list[str] = []
+    for attachment in attachments:
+        content_type = str(getattr(attachment, "content_type", "") or "")
+        url = getattr(attachment, "url", None)
+        if url and content_type.startswith("image/"):
+            urls.append(str(url))
+    return urls
+
+
 def _event_payload(event: Any, transcriber: Transcriber | None) -> dict[str, Any]:
     source = getattr(event, "source", None)
     message_id = str(
@@ -146,7 +170,9 @@ def create_gateway_hook(
                 0
             ].get("transcriptionText", "")
             if extract_plant_ids(content):
-                media_urls = list(getattr(event, "media_urls", None) or [])
+                # Real Discord CDN URLs (not event.media_urls, which is
+                # locally-cached file paths -- see _discord_image_attachment_urls).
+                media_urls = _discord_image_attachment_urls(event)
                 try:
                     processor(content, media_urls)
                 except Exception:
