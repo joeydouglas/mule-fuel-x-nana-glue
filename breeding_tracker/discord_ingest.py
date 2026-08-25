@@ -9,6 +9,7 @@ import re
 import sqlite3
 import subprocess
 import tempfile
+import threading
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -112,11 +113,23 @@ def poll_once(*, store: "IngestStore", exporter: Path, token: str) -> IngestResu
 
 
 class IngestStore:
-    """SQLite-backed cursor and exactly-once observation store."""
+    """SQLite-backed cursor and exactly-once observation store.
+
+    Discord Gateway event handlers can run on a dispatcher thread that is
+    not the thread the store was constructed on (confirmed via a real
+    ``sqlite3.ProgrammingError: SQLite objects created in a thread can only
+    be used in that same thread`` failure in production -- NICK-78). SQLite
+    connections are opened with ``check_same_thread=False`` to allow
+    cross-thread use, and every access is serialized with an internal lock:
+    the connection object itself is not safe for concurrent use from
+    multiple threads even with that flag, only for sequential use from
+    different threads.
+    """
 
     def __init__(self, path: str | Path, channel_id: str):
         self.channel_id = str(channel_id)
-        self.connection = sqlite3.connect(path)
+        self._lock = threading.RLock()
+        self.connection = sqlite3.connect(path, check_same_thread=False)
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.connection.executescript(
             """
@@ -143,43 +156,47 @@ class IngestStore:
         )
 
     def close(self) -> None:
-        self.connection.close()
+        with self._lock:
+            self.connection.close()
 
     def cursor(self) -> str | None:
-        row = self.connection.execute(
-            "SELECT last_message_id FROM cursors WHERE channel_id = ?",
-            (self.channel_id,),
-        ).fetchone()
-        return row[0] if row else None
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT last_message_id FROM cursors WHERE channel_id = ?",
+                (self.channel_id,),
+            ).fetchone()
+            return row[0] if row else None
 
     def blocked_message_id(self) -> str | None:
-        row = self.connection.execute(
-            "SELECT message_id FROM ingestion_blocks WHERE channel_id = ?",
-            (self.channel_id,),
-        ).fetchone()
-        return row[0] if row else None
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT message_id FROM ingestion_blocks WHERE channel_id = ?",
+                (self.channel_id,),
+            ).fetchone()
+            return row[0] if row else None
 
     def block_message(self, message_id: str, reason: str) -> None:
         """Durably stop the high-water cursor at the earliest failed message."""
         message_id = str(message_id)
-        self.connection.execute("BEGIN IMMEDIATE")
-        with self.connection:
-            current = self.cursor()
-            if current is not None and int(message_id) <= int(current):
-                return
-            blocked = self.blocked_message_id()
-            if blocked is not None and int(blocked) <= int(message_id):
-                return
-            self.connection.execute(
-                """
-                INSERT INTO ingestion_blocks (channel_id, message_id, reason)
-                VALUES (?, ?, ?)
-                ON CONFLICT(channel_id) DO UPDATE SET
-                    message_id = excluded.message_id,
-                    reason = excluded.reason
-                """,
-                (self.channel_id, message_id, reason[:512]),
-            )
+        with self._lock:
+            self.connection.execute("BEGIN IMMEDIATE")
+            with self.connection:
+                current = self.cursor()
+                if current is not None and int(message_id) <= int(current):
+                    return
+                blocked = self.blocked_message_id()
+                if blocked is not None and int(blocked) <= int(message_id):
+                    return
+                self.connection.execute(
+                    """
+                    INSERT INTO ingestion_blocks (channel_id, message_id, reason)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(channel_id) DO UPDATE SET
+                        message_id = excluded.message_id,
+                        reason = excluded.reason
+                    """,
+                    (self.channel_id, message_id, reason[:512]),
+                )
 
     def ingest_export(
         self,
@@ -215,76 +232,77 @@ class IngestStore:
 
         # Serialize cursor reads with writes so overlapping pollers cannot
         # process from a stale cursor and later move it backwards.
-        self.connection.execute("BEGIN IMMEDIATE")
-        with self.connection:
-            blocked = self.blocked_message_id()
-            if blocked is not None:
-                if resolving_message_id != blocked:
-                    raise RuntimeError(
-                        f"Ingestion is blocked at Discord message {blocked}"
+        with self._lock:
+            self.connection.execute("BEGIN IMMEDIATE")
+            with self.connection:
+                blocked = self.blocked_message_id()
+                if blocked is not None:
+                    if resolving_message_id != blocked:
+                        raise RuntimeError(
+                            f"Ingestion is blocked at Discord message {blocked}"
+                        )
+                    if not any(str(item["id"]) == blocked for item in messages):
+                        raise ValueError(
+                            f"Resolving payload does not contain blocked message {blocked}"
+                        )
+                current = self.cursor()
+                pending = [
+                    item for item in messages if current is None or int(item["id"]) > int(current)
+                ]
+                for item in pending:
+                    processed += 1
+                    if bool(item.get("author", {}).get("isBot")):
+                        ignored_bots += 1
+                        continue
+                    content, source_type = extract_message_text(item)
+                    plant_ids = extract_plant_ids(content)
+                    if not plant_ids:
+                        ignored_without_plant_id += 1
+                        continue
+                    author = item.get("author", {})
+                    author_id = author.get("id")
+                    author_name = author.get("name")
+                    timestamp = item.get("timestamp")
+                    if not isinstance(author_id, str) or not author_id:
+                        raise ValueError(f"Message {item['id']} has no author ID")
+                    if not isinstance(author_name, str) or not author_name:
+                        raise ValueError(f"Message {item['id']} has no author name")
+                    if not isinstance(timestamp, str) or not timestamp:
+                        raise ValueError(f"Message {item['id']} has no timestamp")
+                    cursor = self.connection.execute(
+                        """
+                        INSERT OR IGNORE INTO observations (
+                            message_id, channel_id, timestamp, author_id, author_name,
+                            content, source_type, plant_ids
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            str(item["id"]),
+                            self.channel_id,
+                            timestamp,
+                            author_id,
+                            author_name,
+                            content,
+                            source_type,
+                            json.dumps(plant_ids),
+                        ),
                     )
-                if not any(str(item["id"]) == blocked for item in messages):
-                    raise ValueError(
-                        f"Resolving payload does not contain blocked message {blocked}"
-                    )
-            current = self.cursor()
-            pending = [
-                item for item in messages if current is None or int(item["id"]) > int(current)
-            ]
-            for item in pending:
-                processed += 1
-                if bool(item.get("author", {}).get("isBot")):
-                    ignored_bots += 1
-                    continue
-                content, source_type = extract_message_text(item)
-                plant_ids = extract_plant_ids(content)
-                if not plant_ids:
-                    ignored_without_plant_id += 1
-                    continue
-                author = item.get("author", {})
-                author_id = author.get("id")
-                author_name = author.get("name")
-                timestamp = item.get("timestamp")
-                if not isinstance(author_id, str) or not author_id:
-                    raise ValueError(f"Message {item['id']} has no author ID")
-                if not isinstance(author_name, str) or not author_name:
-                    raise ValueError(f"Message {item['id']} has no author name")
-                if not isinstance(timestamp, str) or not timestamp:
-                    raise ValueError(f"Message {item['id']} has no timestamp")
-                cursor = self.connection.execute(
-                    """
-                    INSERT OR IGNORE INTO observations (
-                        message_id, channel_id, timestamp, author_id, author_name,
-                        content, source_type, plant_ids
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        str(item["id"]),
-                        self.channel_id,
-                        timestamp,
-                        author_id,
-                        author_name,
-                        content,
-                        source_type,
-                        json.dumps(plant_ids),
-                    ),
-                )
-                recorded += cursor.rowcount
+                    recorded += cursor.rowcount
 
-            if pending:
-                last_message_id = str(pending[-1]["id"])
-                self.connection.execute(
-                    """
-                    INSERT INTO cursors (channel_id, last_message_id) VALUES (?, ?)
-                    ON CONFLICT(channel_id) DO UPDATE SET last_message_id = excluded.last_message_id
-                    """,
-                    (self.channel_id, last_message_id),
-                )
-            if blocked is not None:
-                self.connection.execute(
-                    "DELETE FROM ingestion_blocks WHERE channel_id = ?",
-                    (self.channel_id,),
-                )
+                if pending:
+                    last_message_id = str(pending[-1]["id"])
+                    self.connection.execute(
+                        """
+                        INSERT INTO cursors (channel_id, last_message_id) VALUES (?, ?)
+                        ON CONFLICT(channel_id) DO UPDATE SET last_message_id = excluded.last_message_id
+                        """,
+                        (self.channel_id, last_message_id),
+                    )
+                if blocked is not None:
+                    self.connection.execute(
+                        "DELETE FROM ingestion_blocks WHERE channel_id = ?",
+                        (self.channel_id,),
+                    )
 
         return IngestResult(
             fetched=len(messages),
