@@ -1,0 +1,15 @@
+name: Trigger DO breeding dashboard rebuild
+on:
+  push:
+    branches: [main]
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger DigitalOcean App Platform deployment
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.DO_DEPLOY_TRIGGER_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            "https://api.digitalocean.com/v2/apps/4a98c9f5-a6b5-40cf-bd6b-b9bbe0469a61/deployments"
