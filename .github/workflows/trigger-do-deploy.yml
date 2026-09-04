@@ -11,29 +11,23 @@ jobs:
         run: |
           set -e
           APP_ID="4a98c9f5-a6b5-40cf-bd6b-b9bbe0469a61"
-          AUTH="Authorization: Bearer ${{ secrets.DO_DEPLOY_TRIGGER_TOKEN }}"
-
-          # Pull current spec, bump CACHEBUST (BUILD_TIME env) so the
-          # Dockerfile's `git clone` layer is never reused from cache
-          # (NICK-585: deploys were silently serving stale content because
-          # CACHEBUST was never actually wired to a live value).
-          SPEC=$(curl -s -H "$AUTH" "https://api.digitalocean.com/v2/apps/$APP_ID" | \
-            python3 -c "
-import json, sys, time
-d = json.load(sys.stdin)
-spec = d['app']['spec']
-envs = spec['services'][0]['envs']
-ts = str(int(time.time()))
-found = False
-for e in envs:
-    if e['key'] == 'CACHEBUST':
-        e['value'] = ts
-        found = True
-if not found:
-    envs.append({'key': 'CACHEBUST', 'value': ts, 'scope': 'BUILD_TIME'})
-print(json.dumps({'spec': spec}))
-")
-
-          curl -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+          AUTH_HEADER="Authorization: Bearer ${{ secrets.DO_DEPLOY_TRIGGER_TOKEN }}"
+          cat > /tmp/bump_cachebust.py << 'PYEOF'
+          import json, sys, time
+          d = json.load(sys.stdin)
+          spec = d['app']['spec']
+          envs = spec['services'][0]['envs']
+          ts = str(int(time.time()))
+          found = False
+          for e in envs:
+              if e['key'] == 'CACHEBUST':
+                  e['value'] = ts
+                  found = True
+          if not found:
+              envs.append({'key': 'CACHEBUST', 'value': ts, 'scope': 'BUILD_TIME'})
+          print(json.dumps({'spec': spec}))
+          PYEOF
+          SPEC=$(curl -s -H "$AUTH_HEADER" "https://api.digitalocean.com/v2/apps/$APP_ID" | python3 /tmp/bump_cachebust.py)
+          curl -X PUT -H "$AUTH_HEADER" -H "Content-Type: application/json" \
             --data "$SPEC" \
             "https://api.digitalocean.com/v2/apps/$APP_ID"
