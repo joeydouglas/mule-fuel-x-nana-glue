@@ -18,3 +18,15 @@ generate_dashboard.py
 monitor_breeding_notes.py
 photo_handler.py
 .discord_monitor_state.json
+auto_process_breeding.py
+breeding_export*.json
+breeding_export_*.txt
+breeding_recent.txt
+breeding_tools.py
+dashboard.html
+discord_monitor.py
+fetch_breeding_messages.py
+observation_logger.py
+process_recent.py
+recent_breeding*.json
+recent_breeding*.txt
