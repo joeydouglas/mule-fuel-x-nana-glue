@@ -1,70 +1,45 @@
-# Discord breeding-channel ingestion
+# mule-fuel-x-nana-glue
 
-`breeding_tracker.discord_ingest` polls Discord channel `1540849479371067412` with DiscordChatExporter and stores observations in SQLite.
+Canonical **data repo** for the Mule Fuel x Nana Glue breeding project.
 
-## Guarantees
+## What lives here
 
-- Uses the exact Discord snowflake cursor with `--after`; no time-window overlap.
-- Explicitly passes `--include-threads None` and `--respect-rate-limits true`.
-- Stores the cursor and each observation in one SQLite transaction.
-- Enforces one observation per Discord message ID with a primary key.
-- Ignores bot-authored messages while still advancing the cursor.
-- Preserves Discord author ID, author name, timestamp, and source text exactly.
-- Parses untagged messages; mentions are neither required nor special.
-- Uses supplied `transcriptionText` or `transcription` fields for voice notes. It never invents a transcript when none was supplied. DiscordChatExporter 2.47.3 does not emit those fields itself, so raw DCE voice attachments require an upstream transcription stage to enrich the JSON before replay.
+- `project.md` — project-level notes and cross metadata
+- `plants/<ID>.md` — one markdown file per plant (`MG01`…`MG46`), the source of truth
+  for every observation
 
-DiscordChatExporter 2.47.3 was used to verify the command and JSON shape.
+This repo is read by `breeding-data-api`, which resolves exactly
+`<root>/<slug>/project.md` and `<root>/<slug>/plants/<ID>.md`. Nothing else here is served.
 
-## Run once
+## How it is written
+
+The live pipeline writes here automatically. `monitor_breeding_notes.py` runs with
+`CONFIG['BACKEND'] = 'markdown'`; `breeding_core.push_to_github()` stages
+`project.md` and `plants/` from the local project directory
+(`~/.hermes/breeding/mule-fuel-x-nana-glue/`) and pushes to this repo.
+
+Edit the markdown, not any generated artifact.
+
+## Legacy dashboard
+
+The old hand-generated static HTML dashboard (`index.html`, `style.css`,
+`plants/*.html`) was split out of this repo into
+[`joeydouglas/mule-fuel-x-nana-glue-dashboard-legacy`](https://github.com/joeydouglas/mule-fuel-x-nana-glue-dashboard-legacy)
+(NICK-701) so data and presentation no longer collide in one repo. That snapshot is
+frozen and archival; GitHub Pages was never enabled on either repo.
+
+## Discord ingestion
+
+`breeding_tracker.discord_ingest` polls the Discord breeding channel with
+DiscordChatExporter and records observations. See `breeding_tracker/` and `tests/`.
+
+Guarantees: exact snowflake cursor via `--after` (no time-window overlap),
+`--include-threads None`, `--respect-rate-limits true`, cursor + observation written in
+one transaction, one observation per Discord message ID (primary key), bot messages
+ignored while still advancing the cursor, author/timestamp/source text preserved verbatim.
+Supplied `transcriptionText`/`transcription` fields are used for voice notes; a transcript
+is never invented.
 
 ```bash
 python3 -m breeding_tracker.discord_ingest
-```
-
-Defaults:
-
-- database: `var/discord-ingest.sqlite3`
-- token file: `~/.hermes/discord/token`
-- exporter: `~/.local/bin/discord-chat-exporter/DiscordChatExporter.Cli`
-
-The token is passed to DiscordChatExporter through `DISCORD_TOKEN`, not a process argument. The command prints a JSON summary suitable for cron logs. Schedule this one-shot command with the host's existing scheduler; overlapping runs serialize on SQLite and remain idempotent.
-
-## Real-time Gateway trigger
-
-`integrations/hermes-breeding-ingest` is a Hermes plugin for near-real-time
-ingestion. The existing Hermes Discord Gateway receives each admitted
-`MESSAGE_CREATE` event. The plugin records direct `#breeding` messages in the
-same SQLite store, then returns `skip` so no agent run, reply, reaction, or
-thread is created. Messages in threads under `#breeding` are silently skipped
-and never recorded.
-
-The live Hermes configuration must list channel `1540849479371067412` in
-`discord.free_response_channels` so untagged messages reach the hook. The plugin
-still enforces the exact channel ID. Voice notes use Hermes' configured
-transcription provider; a failed transcription leaves the cursor unchanged for
-recovery rather than inventing text. The failed message ID is durably blocked,
-so later Gateway events and exporter polls cannot skip past it; a successful
-retry of that exact message clears the block transactionally. Because
-DiscordChatExporter 2.47.3 does not supply native voice transcripts, resolving a
-persistently failed voice note requires an enriched replay containing the real
-transcription; raw exporter backfill remains blocked rather than skipping it.
-
-DiscordChatExporter remains the outage/backfill path. Both paths reuse the same
-message-ID primary key and cursor, so reconnects, duplicate Gateway delivery,
-and later polls do not duplicate observations.
-
-## Verify or replay an export
-
-```bash
-python3 -m breeding_tracker.discord_ingest \
-  --database /path/to/verification.sqlite3 \
-  --input-export /path/to/export.json
-```
-
-Replaying the same export records zero additional observations.
-
-## Tests
-
-```bash
-python3 -m unittest discover -s tests -v
 ```
