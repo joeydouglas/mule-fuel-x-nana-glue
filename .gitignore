@@ -6,3 +6,15 @@ var/
 real-channel.json
 __pycache__/
 *.py[cod]
+
+# NICK-701: live project-dir working files that are NOT part of the data repo.
+# push_to_github() only stages project.md + plants/, but ignoring these keeps
+# `git status` in the live project dir readable.
+tracker.json
+cache/
+photo_staging/
+dashboard/
+generate_dashboard.py
+monitor_breeding_notes.py
+photo_handler.py
+.discord_monitor_state.json
