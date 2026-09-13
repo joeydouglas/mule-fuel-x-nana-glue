@@ -1,3 +1,13 @@
+"""Gateway ingest tests, updated for the consolidated breeding-tracker package.
+
+Originally written against this project's vendored single-cross copy of
+breeding_tracker (2-arg processor, silent-skip responses). The consolidated
+package uses the live multi-cross contract: 3-arg processors
+(content, media_urls, plant_ids) and NICK-358 rewrite responses that route an
+acknowledgement through the agent instead of silently skipping.
+"""
+
+import contextlib
 import sqlite3
 import tempfile
 import unittest
@@ -60,7 +70,7 @@ class HermesGatewayIngestTests(unittest.TestCase):
         self.tmp.cleanup()
 
     def observation_count(self, message_id: str) -> int:
-        with sqlite3.connect(self.db_path) as connection:
+        with contextlib.closing(sqlite3.connect(self.db_path)) as connection:
             return connection.execute(
                 "SELECT COUNT(*) FROM observations WHERE message_id = ?",
                 (message_id,),
@@ -73,11 +83,8 @@ class HermesGatewayIngestTests(unittest.TestCase):
         first = hook(event=event)
         second = hook(event=event)
 
-        self.assertEqual(
-            first,
-            {"action": "skip", "reason": "breeding message ingested"},
-        )
-        self.assertEqual(second, first)
+        self.assertEqual(first["action"], "rewrite")
+        self.assertEqual(second["action"], "rewrite")
         self.assertEqual(self.observation_count(event.message_id), 1)
         self.assertEqual(self.store.cursor(), event.message_id)
 
@@ -132,7 +139,7 @@ class HermesGatewayIngestTests(unittest.TestCase):
 
         hook(event=event)
 
-        with sqlite3.connect(self.db_path) as connection:
+        with contextlib.closing(sqlite3.connect(self.db_path)) as connection:
             content = connection.execute(
                 "SELECT content FROM observations WHERE message_id = ?",
                 (event.message_id,),
@@ -157,8 +164,8 @@ class HermesGatewayIngestTests(unittest.TestCase):
         result = hook(event=event)
 
         self.assertEqual(calls, ["/cache/voice-note.ogg"])
-        self.assertEqual(result["action"], "skip")
-        with sqlite3.connect(self.db_path) as connection:
+        self.assertEqual(result["action"], "rewrite")
+        with contextlib.closing(sqlite3.connect(self.db_path)) as connection:
             row = connection.execute(
                 "SELECT plant_ids, content FROM observations WHERE message_id = ?",
                 (event.message_id,),
@@ -223,10 +230,7 @@ class HermesGatewayIngestTests(unittest.TestCase):
         )
         result = retry_hook(event=event)
 
-        self.assertEqual(
-            result,
-            {"action": "skip", "reason": "breeding message ingested"},
-        )
+        self.assertEqual(result["action"], "rewrite")
         self.assertEqual(self.store.cursor(), event.message_id)
         self.assertEqual(self.observation_count(event.message_id), 1)
 
@@ -234,14 +238,16 @@ class HermesGatewayIngestTests(unittest.TestCase):
         calls = []
         hook = create_gateway_hook(
             store=self.store,
-            processor=lambda content, media_urls: calls.append((content, media_urls)),
+            processor=lambda content, media_urls, plant_ids: calls.append(
+                (content, media_urls, plant_ids)
+            ),
         )
         event = make_event(message_id="1542000000000000010", text="MG30 vigor 9")
 
         result = hook(event=event)
 
-        self.assertEqual(result, {"action": "skip", "reason": "breeding message ingested"})
-        self.assertEqual(calls, [("MG30 vigor 9", [])])
+        self.assertEqual(result["action"], "rewrite")
+        self.assertEqual(calls, [("MG30 vigor 9", [], ["MG30"])])
 
     def test_processor_receives_real_discord_cdn_url_not_local_cache_path(self):
         """NICK-9 regression: processor must get the live discord.com CDN URL
@@ -252,7 +258,9 @@ class HermesGatewayIngestTests(unittest.TestCase):
         calls = []
         hook = create_gateway_hook(
             store=self.store,
-            processor=lambda content, media_urls: calls.append((content, media_urls)),
+            processor=lambda content, media_urls, plant_ids: calls.append(
+                (content, media_urls, plant_ids)
+            ),
         )
         cdn_url = "https://cdn.discordapp.com/attachments/123/456/photo.jpg"
         attachment = SimpleNamespace(url=cdn_url, content_type="image/jpeg")
@@ -265,13 +273,15 @@ class HermesGatewayIngestTests(unittest.TestCase):
 
         hook(event=event)
 
-        self.assertEqual(calls, [("MG32 frosty pic", [cdn_url])])
+        self.assertEqual(calls, [("MG32 frosty pic", [cdn_url], ["MG32"])])
 
     def test_processor_ignores_non_image_attachments(self):
         calls = []
         hook = create_gateway_hook(
             store=self.store,
-            processor=lambda content, media_urls: calls.append((content, media_urls)),
+            processor=lambda content, media_urls, plant_ids: calls.append(
+                (content, media_urls, plant_ids)
+            ),
         )
         attachment = SimpleNamespace(
             url="https://cdn.discordapp.com/attachments/1/2/notes.pdf",
@@ -285,13 +295,15 @@ class HermesGatewayIngestTests(unittest.TestCase):
 
         hook(event=event)
 
-        self.assertEqual(calls, [("MG33 see attached notes", [])])
+        self.assertEqual(calls, [("MG33 see attached notes", [], ["MG33"])])
 
     def test_processor_is_not_called_when_no_plant_id_present(self):
         calls = []
         hook = create_gateway_hook(
             store=self.store,
-            processor=lambda content, media_urls: calls.append((content, media_urls)),
+            processor=lambda content, media_urls, plant_ids: calls.append(
+                (content, media_urls, plant_ids)
+            ),
         )
         event = make_event(message_id="1542000000000000011", text="no plant mentioned here")
 
@@ -300,7 +312,7 @@ class HermesGatewayIngestTests(unittest.TestCase):
         self.assertEqual(calls, [])
 
     def test_processor_failure_does_not_change_gateway_response_or_block_cursor(self):
-        def boom(content, media_urls):
+        def boom(content, media_urls, plant_ids):
             raise RuntimeError("dashboard regen exploded")
 
         hook = create_gateway_hook(store=self.store, processor=boom)
@@ -308,7 +320,7 @@ class HermesGatewayIngestTests(unittest.TestCase):
 
         result = hook(event=event)
 
-        self.assertEqual(result, {"action": "skip", "reason": "breeding message ingested"})
+        self.assertEqual(result["action"], "rewrite")
         self.assertEqual(self.observation_count(event.message_id), 1)
         self.assertEqual(self.store.cursor(), event.message_id)
         self.assertIsNone(self.store.blocked_message_id())

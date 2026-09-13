@@ -1,5 +1,6 @@
 import json
 import os
+import contextlib
 import sqlite3
 import tempfile
 import threading
@@ -55,7 +56,7 @@ class IngestStoreTests(unittest.TestCase):
 
         self.assertEqual(first.recorded, 1)
         self.assertEqual(second.recorded, 0)
-        with sqlite3.connect(self.db_path) as connection:
+        with contextlib.closing(sqlite3.connect(self.db_path)) as connection:
             row = connection.execute(
                 "SELECT message_id, author_id, author_name, content, plant_ids "
                 "FROM observations"
@@ -89,7 +90,7 @@ class IngestStoreTests(unittest.TestCase):
         self.assertEqual(result.recorded, 0)
         self.assertEqual(result.ignored_bots, 1)
         self.assertEqual(self.store.cursor(), "1540977486538473523")
-        with sqlite3.connect(self.db_path) as connection:
+        with contextlib.closing(sqlite3.connect(self.db_path)) as connection:
             count = connection.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
         self.assertEqual(count, 0)
 
@@ -109,7 +110,7 @@ class IngestStoreTests(unittest.TestCase):
         result = self.store.ingest_export(export([voice_message]))
 
         self.assertEqual(result.recorded, 1)
-        with sqlite3.connect(self.db_path) as connection:
+        with contextlib.closing(sqlite3.connect(self.db_path)) as connection:
             row = connection.execute(
                 "SELECT content, source_type FROM observations"
             ).fetchone()
@@ -171,7 +172,7 @@ class IngestStoreTests(unittest.TestCase):
             self.store.ingest_export(export([malformed]))
 
         self.assertIsNone(self.store.cursor())
-        with sqlite3.connect(self.db_path) as connection:
+        with contextlib.closing(sqlite3.connect(self.db_path)) as connection:
             count = connection.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
         self.assertEqual(count, 0)
 
